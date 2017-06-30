@@ -1,8 +1,556 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {},
-  "variables": {},
-  "resources": [],
+  "parameters": {
+    "virtualNetworks_vNET_name": {
+      "defaultValue": "vNET",
+      "type": "String"
+    },
+    "location": {
+      "defaultValue": "eastus2",
+      "type": "String"
+    },
+    "storageacctType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_ZRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Premium_LRS"
+      ]
+    },
+    "DockerCE-BuildName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "DockerCE-AdminUserName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "DockerCE-AdminPassword": {
+      "type": "securestring"
+    },
+    "DockerCE-BuildWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview"
+      ]
+    },
+    "DockerCE-DCName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "DockerCE-DCWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview"
+      ]
+    },
+    "DockerCE-Wrk0Name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "DockerCE-Wrk0WindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview"
+      ]
+    },
+    "DockerCE-MgrName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "DockerCE-MgrLinuxOSVersion": {
+      "type": "string",
+      "defaultValue": "14.04.2-LTS",
+      "allowedValues": [
+        "12.04.5-LTS",
+        "14.04.2-LTS"
+      ]
+    },
+    "DockerCE-SQLName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "DockerCE-SQLWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview"
+      ]
+    }
+
+  },
+  "variables": {
+    "storageacctName": "[concat('storageacct', uniqueString(resourceGroup().id))]",
+    "DockerCE-vNETName": "Docker-vNET",
+    "DockerCE-BuildImagePublisher": "MicrosoftWindowsServer",
+    "DockerCE-BuildImageOffer": "WindowsServer",
+    "DockerCE-BuildOSDiskName": "DockerCE-BuildOSDisk",
+    "DockerCE-BuildVmSize": "Standard_D2_v2",
+    "DockerCE-BuildVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-BuildSubnetRef": "[concat(variables('DockerCE-BuildVnetID'), '/subnets/', 'default')]",
+    "DockerCE-BuildStorageAccountContainerName": "vhds",
+    "DockerCE-BuildNicName": "[concat(parameters('DockerCE-BuildName'), 'NetworkInterface')]",
+    "DockerCE-DCImagePublisher": "MicrosoftWindowsServer",
+    "DockerCE-DCImageOffer": "WindowsServer",
+    "DockerCE-DCOSDiskName": "DockerCE-DCOSDisk",
+    "DockerCE-DCVmSize": "Standard_D2_v2",
+    "DockerCE-DCVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-DCSubnetRef": "[concat(variables('DockerCE-DCVnetID'), '/subnets/', 'default')]",
+    "DockerCE-DCStorageAccountContainerName": "vhds",
+    "DockerCE-DCNicName": "[concat(parameters('DockerCE-DCName'), 'NetworkInterface')]",
+    "DockerCE-Wrk0ImagePublisher": "MicrosoftWindowsServer",
+    "DockerCE-Wrk0ImageOffer": "WindowsServer",
+    "DockerCE-Wrk0OSDiskName": "DockerCE-Wrk0OSDisk",
+    "DockerCE-Wrk0VmSize": "Standard_D2_v2",
+    "DockerCE-Wrk0VnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-Wrk0SubnetRef": "[concat(variables('DockerCE-Wrk0VnetID'), '/subnets/', 'default')]",
+    "DockerCE-Wrk0StorageAccountContainerName": "vhds",
+    "DockerCE-Wrk0NicName": "[concat(parameters('DockerCE-Wrk0Name'), 'NetworkInterface')]",
+    "DockerCE-MgrImagePublisher": "Canonical",
+    "DockerCE-MgrImageOffer": "UbuntuServer",
+    "DockerCE-MgrOSDiskName": "DockerCE-MgrOSDisk",
+    "DockerCE-MgrVmSize": "Standard_D2_v2",
+    "DockerCE-MgrVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-MgrSubnetRef": "[concat(variables('DockerCE-MgrVnetID'), '/subnets/', 'default')]",
+    "DockerCE-MgrStorageAccountContainerName": "vhds",
+    "DockerCE-MgrNicName": "[concat(parameters('DockerCE-MgrName'), 'NetworkInterface')]",
+    "DockerCE-SQLImagePublisher": "MicrosoftWindowsServer",
+    "DockerCE-SQLImageOffer": "WindowsServer",
+    "DockerCE-SQLOSDiskName": "DockerCE-SQLOSDisk",
+    "DockerCE-SQLVmSize": "Standard_D2_v2",
+    "DockerCE-SQLVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-SQLSubnetRef": "[concat(variables('DockerCE-SQLVnetID'), '/subnets/', 'default')]",
+    "DockerCE-SQLStorageAccountContainerName": "vhds",
+    "DockerCE-SQLNicName": "[concat(parameters('DockerCE-SQLName'), 'NetworkInterface')]"
+  },
+  "resources": [
+    {
+      "name": "[parameters('virtualNetworks_vNET_name')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[parameters('location')]",
+      "apiVersion": "2017-03-01",
+      "scale": null,
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.1.0.0/16"
+          ]
+        },
+        "dhcpOptions": {
+          "dnsServers": [
+            "10.1.0.100"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "default",
+            "properties": {
+              "addressPrefix": "10.1.0.0/24"
+            }
+          },
+          {
+            "name": "GatewaySubnet",
+            "properties": {
+              "addressPrefix": "10.1.1.0/24"
+            }
+          }
+        ],
+        "virtualNetworkPeerings": []
+      },
+      "dependsOn": [],
+      "tags": {
+        "displayName": "DockerCE-vNET"
+      }
+    },
+    {
+      "name": "[variables('storageacctName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-01-01",
+      "sku": {
+        "name": "[parameters('storageacctType')]"
+      },
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "DockerCE-Storage"
+      },
+      "kind": "Storage"
+    },
+    {
+      "name": "[variables('DockerCE-BuildNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-BuildNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('DockerCE-BuildSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('DockerCE-BuildName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-BuildNicName'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-Build"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('DockerCE-BuildVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('DockerCE-BuildName')]",
+          "adminUsername": "[parameters('DockerCE-AdminUsername')]",
+          "adminPassword": "[parameters('DockerCE-AdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('DockerCE-BuildImagePublisher')]",
+            "offer": "[variables('DockerCE-BuildImageOffer')]",
+            "sku": "[parameters('DockerCE-BuildWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "DockerCE-BuildOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName')), '2016-01-01').primaryEndpoints.blob, variables('DockerCE-BuildStorageAccountContainerName'), '/', variables('DockerCE-BuildOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-BuildNicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('DockerCE-DCNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-DCNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.1.0.100",
+              "privateIPAllocationMethod": "Static",
+              "subnet": {
+                "id": "[variables('DockerCE-DCSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('DockerCE-DCName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-DCNicName'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-DC"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('DockerCE-DCVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('DockerCE-DCName')]",
+          "adminUsername": "[parameters('DockerCE-AdminUsername')]",
+          "adminPassword": "[parameters('DockerCE-AdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('DockerCE-DCImagePublisher')]",
+            "offer": "[variables('DockerCE-DCImageOffer')]",
+            "sku": "[parameters('DockerCE-DCWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "DockerCE-DCOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName')), '2016-01-01').primaryEndpoints.blob, variables('DockerCE-DCStorageAccountContainerName'), '/', variables('DockerCE-DCOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-DCNicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('DockerCE-Wrk0NicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-Wrk0Nic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('DockerCE-Wrk0SubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('DockerCE-Wrk0Name')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-Wrk0NicName'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-Wrk0"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('DockerCE-Wrk0VmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('DockerCE-Wrk0Name')]",
+          "adminUsername": "[parameters('DockerCE-AdminUsername')]",
+          "adminPassword": "[parameters('DockerCE-AdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('DockerCE-Wrk0ImagePublisher')]",
+            "offer": "[variables('DockerCE-Wrk0ImageOffer')]",
+            "sku": "[parameters('DockerCE-Wrk0WindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "DockerCE-Wrk0OSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName')), '2016-01-01').primaryEndpoints.blob, variables('DockerCE-Wrk0StorageAccountContainerName'), '/', variables('DockerCE-Wrk0OSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-Wrk0NicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('DockerCE-MgrNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-MgrNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('DockerCE-MgrSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('DockerCE-MgrName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-MgrNicName'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-Mgr"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('DockerCE-MgrVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('DockerCE-MgrName')]",
+          "adminUsername": "[parameters('DockerCE-AdminUsername')]",
+          "adminPassword": "[parameters('DockerCE-AdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('DockerCE-MgrImagePublisher')]",
+            "offer": "[variables('DockerCE-MgrImageOffer')]",
+            "sku": "[parameters('DockerCE-MgrLinuxOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "DockerCE-MgrOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName')), '2016-01-01').primaryEndpoints.blob, variables('DockerCE-MgrStorageAccountContainerName'), '/', variables('DockerCE-MgrOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-MgrNicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('DockerCE-SQLNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-SQLNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('DockerCE-SQLSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('DockerCE-SQLName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-SQLNicName'))]"
+      ],
+      "tags": {
+        "displayName": "DockerCE-SQL"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('DockerCE-SQLVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('DockerCE-SQLName')]",
+          "adminUsername": "[parameters('DockerCE-AdminUsername')]",
+          "adminPassword": "[parameters('DockerCE-AdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('DockerCE-SQLImagePublisher')]",
+            "offer": "[variables('DockerCE-SQLImageOffer')]",
+            "sku": "[parameters('DockerCE-SQLWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "DockerCE-SQLOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName')), '2016-01-01').primaryEndpoints.blob, variables('DockerCE-SQLStorageAccountContainerName'), '/', variables('DockerCE-SQLOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-SQLNicName'))]"
+            }
+          ]
+        }
+      }
+    }
+  ],
   "outputs": {}
 }
