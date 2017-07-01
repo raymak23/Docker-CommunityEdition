@@ -2,10 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "virtualNetworks_vNET_name": {
-      "defaultValue": "vNET",
-      "type": "String"
-    },
     "location": {
       "defaultValue": "eastus2",
       "type": "String"
@@ -95,8 +91,32 @@
         "2012-R2-Datacenter",
         "Windows-Server-Technical-Preview"
       ]
+    },
+    "DockerCE-VPNName": {
+      "type": "string"
+    },
+    "DockerCE-VPNsku": {
+      "type": "string"
+    },
+    "DockerCE-VPNgatewayType": {
+      "type": "string",
+      "defaultValue": "Vpn",
+      "allowedValues": [
+        "Vpn",
+        "ExpressRoute"
+      ]
+    },
+    "DockerCE-VPNType": {
+      "type": "string",
+      "defaultValue": "RouteBased",
+      "allowedValues": [
+        "RouteBased",
+        "PolicyBased"
+      ]
+    },
+    "DockerCE-VPNnewPublicIpAddressName": {
+      "type": "string"
     }
-
   },
   "variables": {
     "storageacctName": "[concat('storageacct', uniqueString(resourceGroup().id))]",
@@ -105,7 +125,7 @@
     "DockerCE-BuildImageOffer": "WindowsServer",
     "DockerCE-BuildOSDiskName": "DockerCE-BuildOSDisk",
     "DockerCE-BuildVmSize": "Standard_D2_v2",
-    "DockerCE-BuildVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-BuildVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-BuildSubnetRef": "[concat(variables('DockerCE-BuildVnetID'), '/subnets/', 'default')]",
     "DockerCE-BuildStorageAccountContainerName": "vhds",
     "DockerCE-BuildNicName": "[concat(parameters('DockerCE-BuildName'), 'NetworkInterface')]",
@@ -113,7 +133,7 @@
     "DockerCE-DCImageOffer": "WindowsServer",
     "DockerCE-DCOSDiskName": "DockerCE-DCOSDisk",
     "DockerCE-DCVmSize": "Standard_D2_v2",
-    "DockerCE-DCVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-DCVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-DCSubnetRef": "[concat(variables('DockerCE-DCVnetID'), '/subnets/', 'default')]",
     "DockerCE-DCStorageAccountContainerName": "vhds",
     "DockerCE-DCNicName": "[concat(parameters('DockerCE-DCName'), 'NetworkInterface')]",
@@ -121,7 +141,7 @@
     "DockerCE-Wrk0ImageOffer": "WindowsServer",
     "DockerCE-Wrk0OSDiskName": "DockerCE-Wrk0OSDisk",
     "DockerCE-Wrk0VmSize": "Standard_D2_v2",
-    "DockerCE-Wrk0VnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-Wrk0VnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-Wrk0SubnetRef": "[concat(variables('DockerCE-Wrk0VnetID'), '/subnets/', 'default')]",
     "DockerCE-Wrk0StorageAccountContainerName": "vhds",
     "DockerCE-Wrk0NicName": "[concat(parameters('DockerCE-Wrk0Name'), 'NetworkInterface')]",
@@ -129,7 +149,7 @@
     "DockerCE-MgrImageOffer": "UbuntuServer",
     "DockerCE-MgrOSDiskName": "DockerCE-MgrOSDisk",
     "DockerCE-MgrVmSize": "Standard_D2_v2",
-    "DockerCE-MgrVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-MgrVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-MgrSubnetRef": "[concat(variables('DockerCE-MgrVnetID'), '/subnets/', 'default')]",
     "DockerCE-MgrStorageAccountContainerName": "vhds",
     "DockerCE-MgrNicName": "[concat(parameters('DockerCE-MgrName'), 'NetworkInterface')]",
@@ -137,14 +157,18 @@
     "DockerCE-SQLImageOffer": "WindowsServer",
     "DockerCE-SQLOSDiskName": "DockerCE-SQLOSDisk",
     "DockerCE-SQLVmSize": "Standard_D2_v2",
-    "DockerCE-SQLVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]",
+    "DockerCE-SQLVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-SQLSubnetRef": "[concat(variables('DockerCE-SQLVnetID'), '/subnets/', 'default')]",
     "DockerCE-SQLStorageAccountContainerName": "vhds",
-    "DockerCE-SQLNicName": "[concat(parameters('DockerCE-SQLName'), 'NetworkInterface')]"
+    "DockerCE-SQLNicName": "[concat(parameters('DockerCE-SQLName'), 'NetworkInterface')]",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('DockerCE-vNETName'))]",
+    "gatewaySubnetRef": "[concat(variables('vnetID'),'/subnets/','GatewaySubnet')]",
+    "WrkILBSubnetRef":  "[concat(variables('vnetID'),'/subnets/', 'default')]",
+    "DockerCE-Wrk-ILB": "Docker-Wrk-ILB"
   },
   "resources": [
     {
-      "name": "[parameters('virtualNetworks_vNET_name')]",
+      "name": "[variables('DockerCE-vNETName')]",
       "type": "Microsoft.Network/virtualNetworks",
       "location": "[parameters('location')]",
       "apiVersion": "2017-03-01",
@@ -189,7 +213,7 @@
       "sku": {
         "name": "[parameters('storageacctType')]"
       },
-      "dependsOn": [ ],
+      "dependsOn": [],
       "tags": {
         "displayName": "DockerCE-Storage"
       },
@@ -201,7 +225,7 @@
       "location": "[parameters('location')]",
       "apiVersion": "2016-03-30",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]"
       ],
       "tags": {
         "displayName": "DockerCE-BuildNic"
@@ -272,7 +296,7 @@
       "location": "[parameters('location')]",
       "apiVersion": "2016-03-30",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]"
       ],
       "tags": {
         "displayName": "DockerCE-DCNic"
@@ -344,7 +368,7 @@
       "location": "[parameters('location')]",
       "apiVersion": "2016-03-30",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]"
       ],
       "tags": {
         "displayName": "DockerCE-Wrk0Nic"
@@ -415,7 +439,7 @@
       "location": "[parameters('location')]",
       "apiVersion": "2016-03-30",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]"
       ],
       "tags": {
         "displayName": "DockerCE-MgrNic"
@@ -486,7 +510,7 @@
       "location": "[parameters('location')]",
       "apiVersion": "2016-03-30",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vNET_name'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]"
       ],
       "tags": {
         "displayName": "DockerCE-SQLNic"
@@ -550,6 +574,104 @@
           ]
         }
       }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[parameters('DockerCE-VPNName')]",
+      "type": "Microsoft.Network/virtualNetworkGateways",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
+        "[concat('Microsoft.Network/publicIPAddresses/', parameters('DockerCE-VPNnewPublicIpAddressName'))]"
+      ],
+      "properties": {
+        "gatewayType": "[parameters('DockerCE-VPNgatewayType')]",
+        "ipConfigurations": [
+          {
+            "name": "default",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('gatewaySubnetRef')]"
+              },
+              "publicIpAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('DockerCE-VPNnewPublicIpAddressName'))]"
+              }
+            }
+          }
+        ],
+        "enableBgp": false,
+        "vpnType": "[parameters('DockerCE-VPNType')]",
+        "sku": {
+          "name": "[parameters('DockerCE-VPNsku')]",
+          "tier": "[parameters('DockerCE-VPNsku')]"
+        }
+      },
+      "tags": {
+        "displayName": "DockerCE-VPNGateway"
+      }
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[parameters('DockerCE-VPNnewPublicIpAddressName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      },
+      "tags": {
+        "displayName": "DockerCE-VPNPublicIP"
+      }
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "name": "[variables('DockerCE-Wrk-ILB')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "LoadBalancerFrontEnd",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "subnet": {
+                "id": "[variables('WrkILBSubnetRef')]"
+              },
+              "privateIPAddress": "10.1.0.101"
+            }
+          }
+        ]
+      },
+      "tags": {
+        "displayName": "DockerCE-Wrk-ILB"
+      }
+    },
+    {
+      "apiVersion": "2016-04-30-preview",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "Docker-Wrk-AS",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "platformUpdateDomainCount": 5,
+        "platformFaultDomainCount": 2,
+        "virtualMachines": [
+          {
+            "id": "[resourceId('Microsoft.Compute/virtualMachines', parameters('DockerCE-Wrk0Name'))]"
+          }
+        ]
+      },
+      "tags": {
+        "displayName": "DockerCE-Wrk-AS"
+      },
+      "sku": {
+        "name": "Classic"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('DockerCE-Wrk0Name'))]"
+      ]
     }
   ],
   "outputs": {}

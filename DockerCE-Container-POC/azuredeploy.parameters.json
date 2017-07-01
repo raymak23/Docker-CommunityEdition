@@ -2,9 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
   "parameters": {
-    "virtualNetworks_vNET_name": {
-      "value": "vNET"
-    },
     "location": {
       "value": "eastus2"
     },
@@ -28,6 +25,15 @@
     },
     "DockerCE-SQLName": {
       "value": "DockerCE-SQL"
+    },
+    "DockerCE-VPNName": {
+      "value": "Docker-P2SVPN"
+    },
+    "DockerCE-VPNsku": {
+      "value": "Basic"
+    },
+    "DockerCE-VPNnewPublicIpAddressName": {
+      "value": "Docker-VPNGatewayPubIP"
     }
   }
 }
