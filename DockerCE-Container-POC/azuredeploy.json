@@ -30,12 +30,12 @@
     },
     "DockerCE-BuildWindowsOSVersion": {
       "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
+      "defaultValue": "2016-Datacenter-smalldisk",
       "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
+        "2016-Datacenter",
+        "2016-Datacenter-Server-Core",
+        "2016-Datacenter-Server-Core-smalldisk",
+        "2016-Datacenter-smalldisk"
       ]
     },
     "DockerCE-DCName": {
@@ -44,12 +44,12 @@
     },
     "DockerCE-DCWindowsOSVersion": {
       "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
+      "defaultValue": "2016-Datacenter-Server-Core-smalldisk",
       "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
+        "2016-Datacenter",
+        "2016-Datacenter-Server-Core",
+        "2016-Datacenter-Server-Core-smalldisk",
+        "2016-Datacenter-smalldisk"
       ]
     },
     "DockerCE-Wrk0Name": {
@@ -58,12 +58,12 @@
     },
     "DockerCE-Wrk0WindowsOSVersion": {
       "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
+      "defaultValue": "2016-Datacenter-Server-Core-smalldisk",
       "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
+        "2016-Datacenter",
+        "2016-Datacenter-Server-Core",
+        "2016-Datacenter-Server-Core-smalldisk",
+        "2016-Datacenter-smalldisk"
       ]
     },
     "DockerCE-MgrName": {
@@ -72,10 +72,10 @@
     },
     "DockerCE-MgrLinuxOSVersion": {
       "type": "string",
-      "defaultValue": "14.04.2-LTS",
+      "defaultValue": "7.3",
       "allowedValues": [
-        "12.04.5-LTS",
-        "14.04.2-LTS"
+        "7.2",
+        "7.3"
       ]
     },
     "DockerCE-SQLName": {
@@ -84,12 +84,12 @@
     },
     "DockerCE-SQLWindowsOSVersion": {
       "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
+      "defaultValue": "Express",
       "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
+        "Express",
+        "Standard",
+        "Enterprise",
+        "Web"
       ]
     },
     "DockerCE-VPNName": {
@@ -124,7 +124,7 @@
     "DockerCE-BuildImagePublisher": "MicrosoftWindowsServer",
     "DockerCE-BuildImageOffer": "WindowsServer",
     "DockerCE-BuildOSDiskName": "DockerCE-BuildOSDisk",
-    "DockerCE-BuildVmSize": "Standard_D2_v2",
+    "DockerCE-BuildVmSize": "Standard_A1_v2",
     "DockerCE-BuildVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-BuildSubnetRef": "[concat(variables('DockerCE-BuildVnetID'), '/subnets/', 'default')]",
     "DockerCE-BuildStorageAccountContainerName": "vhds",
@@ -132,7 +132,7 @@
     "DockerCE-DCImagePublisher": "MicrosoftWindowsServer",
     "DockerCE-DCImageOffer": "WindowsServer",
     "DockerCE-DCOSDiskName": "DockerCE-DCOSDisk",
-    "DockerCE-DCVmSize": "Standard_D2_v2",
+    "DockerCE-DCVmSize": "Basic_A0",
     "DockerCE-DCVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-DCSubnetRef": "[concat(variables('DockerCE-DCVnetID'), '/subnets/', 'default')]",
     "DockerCE-DCStorageAccountContainerName": "vhds",
@@ -140,30 +140,30 @@
     "DockerCE-Wrk0ImagePublisher": "MicrosoftWindowsServer",
     "DockerCE-Wrk0ImageOffer": "WindowsServer",
     "DockerCE-Wrk0OSDiskName": "DockerCE-Wrk0OSDisk",
-    "DockerCE-Wrk0VmSize": "Standard_D2_v2",
+    "DockerCE-Wrk0VmSize": "Standard_A1_v2",
     "DockerCE-Wrk0VnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-Wrk0SubnetRef": "[concat(variables('DockerCE-Wrk0VnetID'), '/subnets/', 'default')]",
     "DockerCE-Wrk0StorageAccountContainerName": "vhds",
     "DockerCE-Wrk0NicName": "[concat(parameters('DockerCE-Wrk0Name'), 'NetworkInterface')]",
-    "DockerCE-MgrImagePublisher": "Canonical",
-    "DockerCE-MgrImageOffer": "UbuntuServer",
+    "DockerCE-MgrImagePublisher": "OpenLogic",
+    "DockerCE-MgrImageOffer": "CentOS",
     "DockerCE-MgrOSDiskName": "DockerCE-MgrOSDisk",
-    "DockerCE-MgrVmSize": "Standard_D2_v2",
+    "DockerCE-MgrVmSize": "Basic_A0",
     "DockerCE-MgrVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-MgrSubnetRef": "[concat(variables('DockerCE-MgrVnetID'), '/subnets/', 'default')]",
     "DockerCE-MgrStorageAccountContainerName": "vhds",
     "DockerCE-MgrNicName": "[concat(parameters('DockerCE-MgrName'), 'NetworkInterface')]",
-    "DockerCE-SQLImagePublisher": "MicrosoftWindowsServer",
-    "DockerCE-SQLImageOffer": "WindowsServer",
+    "DockerCE-SQLImagePublisher": "MicrosoftSQLServer",
+    "DockerCE-SQLImageOffer": "SQL2016SP1-WS2016",
     "DockerCE-SQLOSDiskName": "DockerCE-SQLOSDisk",
-    "DockerCE-SQLVmSize": "Standard_D2_v2",
+    "DockerCE-SQLVmSize": "Standard_A1_v2",
     "DockerCE-SQLVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('DockerCE-vNETName'))]",
     "DockerCE-SQLSubnetRef": "[concat(variables('DockerCE-SQLVnetID'), '/subnets/', 'default')]",
     "DockerCE-SQLStorageAccountContainerName": "vhds",
     "DockerCE-SQLNicName": "[concat(parameters('DockerCE-SQLName'), 'NetworkInterface')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('DockerCE-vNETName'))]",
     "gatewaySubnetRef": "[concat(variables('vnetID'),'/subnets/','GatewaySubnet')]",
-    "WrkILBSubnetRef":  "[concat(variables('vnetID'),'/subnets/', 'default')]",
+    "WrkILBSubnetRef": "[concat(variables('vnetID'),'/subnets/', 'default')]",
     "DockerCE-Wrk-ILB": "Docker-Wrk-ILB"
   },
   "resources": [
@@ -391,10 +391,10 @@
       "name": "[parameters('DockerCE-Wrk0Name')]",
       "type": "Microsoft.Compute/virtualMachines",
       "location": "[resourceGroup().location]",
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2016-04-30-preview",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-Wrk0NicName'))]"
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-Wrk0NicName'))]",
+        "[resourceId('Microsoft.Compute/availabilitySets', 'Docker-Wrk-AS')]"
       ],
       "tags": {
         "displayName": "DockerCE-Wrk0"
@@ -406,7 +406,10 @@
         "osProfile": {
           "computerName": "[parameters('DockerCE-Wrk0Name')]",
           "adminUsername": "[parameters('DockerCE-AdminUsername')]",
-          "adminPassword": "[parameters('DockerCE-AdminPassword')]"
+          "adminPassword": "[parameters('DockerCE-AdminPassword')]",
+          "windowsConfiguration": {
+            "provisionVmAgent": "true"
+          }
         },
         "storageProfile": {
           "imageReference": {
@@ -416,13 +419,12 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "DockerCE-Wrk0OSDisk",
-            "vhd": {
-              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageacctName')), '2016-01-01').primaryEndpoints.blob, variables('DockerCE-Wrk0StorageAccountContainerName'), '/', variables('DockerCE-Wrk0OSDiskName'), '.vhd')]"
-            },
-            "caching": "ReadWrite",
-            "createOption": "FromImage"
-          }
+            "createOption": "fromImage",
+            "managedDisk": {
+              "storageAccountType": "Standard_LRS"
+            }
+          },
+          "dataDisks": []
         },
         "networkProfile": {
           "networkInterfaces": [
@@ -430,6 +432,9 @@
               "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('DockerCE-Wrk0NicName'))]"
             }
           ]
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', 'Docker-Wrk-AS')]"
         }
       }
     },
@@ -657,21 +662,11 @@
       "properties": {
         "platformUpdateDomainCount": 5,
         "platformFaultDomainCount": 2,
-        "virtualMachines": [
-          {
-            "id": "[resourceId('Microsoft.Compute/virtualMachines', parameters('DockerCE-Wrk0Name'))]"
-          }
-        ]
+        "managed": true
       },
       "tags": {
         "displayName": "DockerCE-Wrk-AS"
-      },
-      "sku": {
-        "name": "Classic"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', parameters('DockerCE-Wrk0Name'))]"
-      ]
+      }
     }
   ],
   "outputs": {}
